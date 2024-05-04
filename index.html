@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Playback Control</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        text-align: center;
+    }
+
+    input, button {
+        margin: 10px;
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    #videoPlayer {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+</head>
+<body>
+    <h1>Video Day Selector</h1>
+    <input type="file" id="videoUpload" accept="video/*">
+    <input type="number" id="dayInput" placeholder="Enter day number" min="1" max="152">
+    <button id="loadButton">Load Video</button>
+    <br>
+    <video id="videoPlayer" controls>
+        Your browser does not support the video tag.
+    </video>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const videoPlayer = document.getElementById('videoPlayer');
+            const dayInput = document.getElementById('dayInput');
+            const loadButton = document.getElementById('loadButton');
+
+            loadButton.addEventListener('click', function() {
+                const fileInput = document.getElementById('videoUpload');
+                if (fileInput.files.length === 0) {
+                    alert('Please upload a video file.');
+                    return;
+                }
+
+                const videoFile = fileInput.files[0];
+                const videoUrl = URL.createObjectURL(videoFile);
+                videoPlayer.src = videoUrl;
+                videoPlayer.load();
+
+                videoPlayer.addEventListener('loadedmetadata', () => {
+                    const totalDuration = videoPlayer.duration; // Get the actual video duration
+                    const totalDays = 152; // Total number of days
+                    const secondsPerDay = totalDuration / totalDays;
+
+                    const dayNumber = parseInt(dayInput.value);
+                    if (dayNumber < 1 || dayNumber > totalDays) {
+                        alert('Day number out of range. Please enter a day between 1 and 152.');
+                        return;
+                    }
+
+                    const stopTime = dayNumber * secondsPerDay;
+
+                    videoPlayer.currentTime = 0; // Start from the beginning
+                    videoPlayer.play();
+
+                    videoPlayer.ontimeupdate = function() {
+                        if (videoPlayer.currentTime >= stopTime) {
+                            videoPlayer.pause();
+                            videoPlayer.ontimeupdate = null; // Remove the event listener
+                        }
+                    };
+                });
+            });
+        });
+    </script>
+</body>
+</html>
